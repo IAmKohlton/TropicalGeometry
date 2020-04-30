@@ -43,6 +43,10 @@ class Polynomial(object):
     def __rmul__(self, input):
         return self.operate(input, "*")
 
+    def __pow__(self, input):
+        assert isinstance(input, int)
+        return self.operate(input, "^")
+
     def __str__(self):
         if self.poly is (None, None, None):
             return ""
@@ -59,8 +63,10 @@ class Polynomial(object):
         elif isinstance(self.poly, tuple):
             if self.poly[1] == "+":
                 return min(self.poly[0].evalRecurse(x), self.poly[2].evalRecurse(x))
-            if self.poly[2] == "*":
+            if self.poly[1] == "*":
                 return self.poly[0].evalRecurse(x) + self.poly[2].evalRecurse(x)
+            if self.poly[1] == "^":
+                return self.poly[0].evalRecurse(x) * self.poly[2].evalRecurse(x)
 
     def eval(self, x):
         if self.poly is (None, None, None):
