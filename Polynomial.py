@@ -26,7 +26,7 @@ class Polynomial(object):
             if isinstance(input, Polynomial):
                 newPoly.vars = input.vars | self.vars
             elif isinstance(input, Variable):
-                newPoly.vars = set(input) | self.vars
+                newPoly.vars = {input} | self.vars
             else:
                 newPoly.vars = self.vars
             return newPoly
