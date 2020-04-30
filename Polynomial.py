@@ -12,7 +12,7 @@ class Polynomial(object):
             return Polynomial(input=input)
         else:
             newPoly = Polynomial()
-            newPoly.poly = (self.poly, op, input)
+            newPoly.poly = (self, op, input)
             return newPoly
 
     def __add__(self, input):
