@@ -31,3 +31,14 @@ for x in (p + q).vars:
 x = Variable("x")
 y = Variable("y")
 print(x + y)
+
+p = ((2 * y) + x) * ((x + y) * 10) + (y * x) ** 10
+print(p)
+
+p = 2 + x + 4 + y
+q = 2 + x + (4 * y)
+r = (2 + x) * (4 * y)
+print(p, q, r)
+print(p + q)
+
+print(q.eval({"x": 10, "y": 0}))
