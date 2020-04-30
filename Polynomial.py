@@ -2,9 +2,14 @@ import Variable
 
 
 class Polynomial(object):
+    """ A tropical polynomial. This is a polynomial where addition is done with min(), and multiplication is done with +.
+    """
+
     def __init__(self, input=None):
+        """ initialize the polynomial.
+        """
         if input is None:
-            self.poly = (None, None, None)
+            self.poly = None
         else:
             assert isinstance(input, int) or isinstance(input, float) or isinstance(input, Polynomial) or isinstance(input, Variable.Variable)
             self.poly = input
@@ -18,7 +23,7 @@ class Polynomial(object):
 
     def operate(self, input, op):
         assert isinstance(input, int) or isinstance(input, float) or isinstance(input, Polynomial) or isinstance(input, Variable.Variable)
-        if self.poly == (None, None, None):
+        if self.poly is None:
             return Polynomial(input=input)
         else:
             newPoly = Polynomial()
@@ -48,7 +53,7 @@ class Polynomial(object):
         return self.operate(input, "^")
 
     def __str__(self):
-        if self.poly is (None, None, None):
+        if self.poly is None:
             return ""
         elif not isinstance(self.poly, tuple):
             return str(self.poly)
@@ -69,7 +74,7 @@ class Polynomial(object):
                 return self.poly[0].evalRecurse(x) * self.poly[2].evalRecurse(x)
 
     def eval(self, x):
-        if self.poly is (None, None, None):
+        if self.poly is None:
             return None
 
         varNameSet = {x.name for x in self.vars}
