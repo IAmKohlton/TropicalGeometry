@@ -1,3 +1,6 @@
+import Polynomial
+
+
 class Variable(object):
     def __init__(self, name):
         self.name = name
@@ -6,7 +9,23 @@ class Variable(object):
         return self.name
 
     def __eq__(self, other):
+        if type(self) != type(other):
+            return False
         return self.name == other.name
 
     def __hash__(self):
         return hash(self.name)
+
+    def __add__(self, other):
+        assert isinstance(other, int) or isinstance(other, float) or isinstance(other, Variable) or isinstance(other, Polynomial.Polynomial)
+        return Polynomial.Polynomial(self) + Polynomial.Polynomial(other)
+
+    def __radd__(self, other):
+        return self + other
+
+    def __mul__(self, other):
+        assert isinstance(other, int) or isinstance(other, float) or isinstance(other, Variable) or isinstance(other, Polynomial.Polynomial)
+        return Polynomial.Polynomial(self) * Polynomial.Polynomial(other)
+
+    def __rmul__(self, other):
+        return self * other

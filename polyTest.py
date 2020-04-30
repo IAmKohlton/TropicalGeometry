@@ -27,3 +27,7 @@ print()
 
 for x in (p + q).vars:
     print(x)
+
+x = Variable("x")
+y = Variable("y")
+print(x + y)

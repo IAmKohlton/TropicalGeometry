@@ -12,7 +12,7 @@ class Polynomial(object):
         if isinstance(self.poly, Polynomial):
             self.vars = self.poly.vars
         elif isinstance(self.poly, Variable):
-            self.vars = set(self.poly)
+            self.vars = {self.poly}
         else:
             self.vars = set()
 
