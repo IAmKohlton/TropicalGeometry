@@ -1,4 +1,4 @@
 from Polynomial import Polynomial
-p = Polynomial()
+p = Polynomial(22)
 p = p + 2
-print(p)
+print(str(p))

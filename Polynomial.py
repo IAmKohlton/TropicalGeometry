@@ -3,15 +3,17 @@ class Polynomial(object):
         if input is None:
             self.poly = (None, None, None)
         else:
-            assert type(input) == "int" or type(input) == "float" or type(input) == "Polynomial" or type(input) == "Variable"
+            assert isinstance(input, int) or isinstance(input, float) or isinstance(input, Polynomial)
             self.poly = input
 
     def operate(self, input, op):
-        assert type(input) == "int" or type(input) == "float" or type(input) == "Polynomial" or type(input) == "Variable"
-        if self.poly is (None, None, None):
+        assert isinstance(input, int) or isinstance(input, float) or isinstance(input, Polynomial)
+        if self.poly == (None, None, None):
             return Polynomial(input=input)
         else:
-            return Polynomial(input=(self.poly, op, input))
+            newPoly = Polynomial()
+            newPoly.poly = (self.poly, op, input)
+            return newPoly
 
     def __add__(self, input):
         return self.operate(input, "+")
@@ -28,7 +30,7 @@ class Polynomial(object):
     def __str__(self):
         if self.poly is (None, None, None):
             return ""
-        elif type(input) != "tuple":
-            return str(input)
+        elif not isinstance(self.poly, tuple):
+            return str(self.poly)
         else:
-            return str(self.poly[0]) + self.poly[1] + str(self.poly[2])
+            return "(" + str(self.poly[0]) + self.poly[1] + str(self.poly[2]) + ")"
