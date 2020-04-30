@@ -1,25 +1,29 @@
 class Polynomial(object):
-    def __init__(self):
-        self.poly = (None, None, None)
+    def __init__(self, input=None):
+        if input is None:
+            self.poly = (None, None, None)
+        else:
+            assert type(input) == "int" or type(input) == "float" or type(input) == "Polynomial" or type(input) == "Variable"
+            self.poly = input
 
     def operate(self, input, op):
         assert type(input) == "int" or type(input) == "float" or type(input) == "Polynomial" or type(input) == "Variable"
         if self.poly is (None, None, None):
-            self.poly = input
+            return Polynomial(input=input)
         else:
-            self.poly = (self.poly, op, input)
+            return Polynomial(input=(self.poly, op, input))
 
     def __add__(self, input):
-        self.operate(input, "+")
+        return self.operate(input, "+")
 
     def __radd__(self, input):
-        self.operate(input, "+")
+        return self.operate(input, "+")
 
     def __mul__(self, input):
-        self.operate(input, "*")
+        return self.operate(input, "*")
 
     def __rmul__(self, input):
-        self.operate(input, "*")
+        return self.operate(input, "*")
 
     def __str__(self):
         if self.poly is (None, None, None):
