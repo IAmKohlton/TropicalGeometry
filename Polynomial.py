@@ -1,13 +1,16 @@
+from Variable import Variable
+
+
 class Polynomial(object):
     def __init__(self, input=None):
         if input is None:
             self.poly = (None, None, None)
         else:
-            assert isinstance(input, int) or isinstance(input, float) or isinstance(input, Polynomial)
+            assert isinstance(input, int) or isinstance(input, float) or isinstance(input, Polynomial) or isinstance(input, Variable)
             self.poly = input
 
     def operate(self, input, op):
-        assert isinstance(input, int) or isinstance(input, float) or isinstance(input, Polynomial)
+        assert isinstance(input, int) or isinstance(input, float) or isinstance(input, Polynomial) or isinstance(input, Variable)
         if self.poly == (None, None, None):
             return Polynomial(input=input)
         else:
