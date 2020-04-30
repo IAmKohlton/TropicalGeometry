@@ -9,6 +9,13 @@ class Polynomial(object):
             assert isinstance(input, int) or isinstance(input, float) or isinstance(input, Polynomial) or isinstance(input, Variable)
             self.poly = input
 
+        if isinstance(self.poly, Polynomial):
+            self.vars = self.poly.vars
+        elif isinstance(self.poly, Variable):
+            self.vars = set(self.poly)
+        else:
+            self.vars = set()
+
     def operate(self, input, op):
         assert isinstance(input, int) or isinstance(input, float) or isinstance(input, Polynomial) or isinstance(input, Variable)
         if self.poly == (None, None, None):
@@ -16,6 +23,12 @@ class Polynomial(object):
         else:
             newPoly = Polynomial()
             newPoly.poly = (self, op, input)
+            if isinstance(input, Polynomial):
+                newPoly.vars = input.vars | self.vars
+            elif isinstance(input, Variable):
+                newPoly.vars = set(input) | self.vars
+            else:
+                newPoly.vars = self.vars
             return newPoly
 
     def __add__(self, input):
@@ -37,3 +50,9 @@ class Polynomial(object):
             return str(self.poly)
         else:
             return "(" + str(self.poly[0]) + self.poly[1] + str(self.poly[2]) + ")"
+
+    def eval(self, x):
+        if self.poly is (None, None, None):
+            return None
+        elif isinstance(self.poly, Variable):
+            return None
