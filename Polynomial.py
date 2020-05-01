@@ -14,7 +14,7 @@ class Polynomial(object):
             # it will be convention that this is a list [op, x_1, x_2, ...] which will correspond to something like
             # x_1 + x_2 + ... or x_1 * x_2 * ...
         elif isinstance(input, Polynomial):
-            self.poly = input.poly
+            self.poly = input.poly[:]
         else:
             assert isinstance(input, int) or isinstance(input, float) or isinstance(input, Variable.Variable)
             self.poly = input
@@ -127,3 +127,36 @@ class Polynomial(object):
             raise Exception("Didn't assign all of the variables in the polynomial")
         result = self.evalRecurse(x)
         return result
+
+    def distribute():
+        return None
+
+    def simplify(self):
+        """ This function relies on the fact that for a given node of a polynomial,
+            all of it's children will be the same operation.
+            The exponential functions breaks this so we'll deal with it later
+        """
+        # check if we're a + node, a * node, or a simple node
+        if isinstance(self.poly, (int, float, Variable.Variable)):
+            return self
+        elif self.poly[0] == "+":
+            newPoly = Polynomial()
+            newPoly.poly = ["+"]
+            for branch in self.poly[1:]:
+                newPoly.poly.append(branch.simplify)
+            return newPoly
+        else:  # we are on a * node
+            # this is the complicated step
+            # start by partitioning branches into simple, and non simple
+            nonSimple = []
+            simple = []
+            for branch in self.poly[1:]:
+                if isinstance(self.poly, (int, float, Variable.Variable)):
+                    simple.append(branch)
+                else:
+                    nonSimple.append(branch)
+
+            if len(nonSimple) == 0:  # this means our * node gives a monomial!
+                return Polynomial(input=self.poly)
+            else:
+                return self.distribute()
