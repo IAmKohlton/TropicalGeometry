@@ -128,8 +128,38 @@ class Polynomial(object):
         result = self.evalRecurse(x)
         return result
 
-    def distribute():
-        return None
+    def distribute(nonSimple, simple):
+        left = nonSimple[0]
+        for right in nonSimple[1:]:
+            tempLeft = Polynomial()
+            tempLeft.poly = ["+"]
+            for leftBranch in left.poly[1:]:
+                for rightBranch in right.poly[1:]:
+                    # need to multiply leftBranch, and rightBranch together.
+                    # this will be the product of their sub-branches
+
+                    crossTerm = Polynomial()
+                    crossTerm.poly = ["*"]
+                    if isinstance(rightBranch.poly, (int, float, Variable.Variable)):
+                        crossTerm.poly.append(rightBranch.poly)
+                    else:
+                        for subterm in rightBranch.poly[1:]:
+                            crossTerm.poly.append(subterm)
+
+                    if isinstance(leftBranch.poly, (int, float, Variable.Variable)):
+                        crossTerm.poly.append(leftBranch.poly)
+                    else:
+                        for subterm in leftBranch.poly[1:]:
+                            crossTerm.poly.append(subterm)
+
+                    tempLeft.append(crossTerm)
+            left = tempLeft
+
+        # now all the non simple branches are distributed
+        # just need to distribute the simple branches
+        for child in left[1:]:
+            child.poly.extend(simple)
+        return left
 
     def simplify(self):
         """ This function relies on the fact that for a given node of a polynomial,
@@ -143,7 +173,7 @@ class Polynomial(object):
             newPoly = Polynomial()
             newPoly.poly = ["+"]
             for branch in self.poly[1:]:
-                newPoly.poly.append(branch.simplify)
+                newPoly.poly.append(branch.simplify())
             return newPoly
         else:  # we are on a * node
             # this is the complicated step
@@ -159,4 +189,9 @@ class Polynomial(object):
             if len(nonSimple) == 0:  # this means our * node gives a monomial!
                 return Polynomial(input=self.poly)
             else:
-                return self.distribute()
+                simplified = self.distribute(nonSimple, simple)
+                newPoly = Polynomial()
+                newPoly.poly = ["+"]
+                for branch in simplified.poly[1:]:
+                    newPoly.poly.append(branch.simplify())
+                return newPoly
