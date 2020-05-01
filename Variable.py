@@ -17,15 +17,19 @@ class Variable(object):
         return hash(self.name)
 
     def __add__(self, other):
-        assert isinstance(other, int) or isinstance(other, float) or isinstance(other, Variable) or isinstance(other, Polynomial.Polynomial)
+        assert isinstance(other, (int, float, Variable, Polynomial.Polynomial))
         return Polynomial.Polynomial(self) + Polynomial.Polynomial(other)
 
     def __radd__(self, other):
         return self + other
 
     def __mul__(self, other):
-        assert isinstance(other, int) or isinstance(other, float) or isinstance(other, Variable) or isinstance(other, Polynomial.Polynomial)
+        assert isinstance(other, (int, float, Variable, Polynomial.Polynomial))
         return Polynomial.Polynomial(self) * Polynomial.Polynomial(other)
 
     def __rmul__(self, other):
         return self * other
+
+    def __pow__(self, other):
+        assert isinstance(other, int)
+        return Polynomial.Polynomial(self) ** other

@@ -14,9 +14,12 @@ class Polynomial(object):
             # it will be convention that this is a list [op, x_1, x_2, ...] which will correspond to something like
             # x_1 + x_2 + ... or x_1 * x_2 * ...
         elif isinstance(input, Polynomial):
-            self.poly = input.poly[:]
+            if isinstance(input.poly, (int, float, Variable.Variable)):
+                self.poly = input.poly
+            else:
+                self.poly = input.poly[:]
         else:
-            assert isinstance(input, int) or isinstance(input, float) or isinstance(input, Variable.Variable)
+            assert isinstance(input, (int, float, Variable.Variable))
             self.poly = input
 
         if isinstance(self.poly, Polynomial):
@@ -29,8 +32,7 @@ class Polynomial(object):
     def operate(self, input, op):
         """ A generalized version of addition, multiplication, and exponentiation
         """
-        assert isinstance(input, int) or isinstance(input, float) or \
-            isinstance(input, Polynomial) or isinstance(input, Variable.Variable)
+        assert isinstance(input, (int, float, Variable.Variable, Polynomial))
 
         if self.poly is None:
             return Polynomial(input=input)
@@ -39,7 +41,7 @@ class Polynomial(object):
             # newPoly.poly = (self, op, input)
 
             # cast the input to a Polynomial
-            if isinstance(input, int) or isinstance(input, float) or isinstance(input, Variable.Variable):
+            if isinstance(input, (int, float, Variable.Variable)):
                 input = Polynomial(input=input)
 
             # these first three cases deal with when one of them is a basic type
@@ -48,9 +50,13 @@ class Polynomial(object):
             elif not isinstance(self.poly, list):
                 if op == input.poly[0]:
                     newPoly.poly = input.poly + [self]
+                else:
+                    newPoly.poly = [op, self, input]
             elif not isinstance(input.poly, list):
                 if op == self.poly[0]:
                     newPoly.poly = self.poly + [input]
+                else:
+                    newPoly.poly = [op, self, input]
 
             # next four cases deal with when both are polynomials already
             elif op == self.poly[0] and op == input.poly[0]:
@@ -128,7 +134,7 @@ class Polynomial(object):
         result = self.evalRecurse(x)
         return result
 
-    def distribute(nonSimple, simple):
+    def distribute(self, nonSimple, simple):
         left = nonSimple[0]
         for right in nonSimple[1:]:
             tempLeft = Polynomial()
@@ -152,16 +158,16 @@ class Polynomial(object):
                         for subterm in leftBranch.poly[1:]:
                             crossTerm.poly.append(subterm)
 
-                    tempLeft.append(crossTerm)
+                    tempLeft.poly.append(crossTerm)
             left = tempLeft
 
         # now all the non simple branches are distributed
         # just need to distribute the simple branches
-        for child in left[1:]:
+        for child in left.poly[1:]:
             child.poly.extend(simple)
         return left
 
-    def simplify(self):
+    def simplifyRecurse(self):
         """ This function relies on the fact that for a given node of a polynomial,
             all of it's children will be the same operation.
             The exponential functions breaks this so we'll deal with it later
@@ -173,7 +179,7 @@ class Polynomial(object):
             newPoly = Polynomial()
             newPoly.poly = ["+"]
             for branch in self.poly[1:]:
-                newPoly.poly.append(branch.simplify())
+                newPoly.poly.append(branch.simplifyRecurse())
             return newPoly
         else:  # we are on a * node
             # this is the complicated step
@@ -181,17 +187,58 @@ class Polynomial(object):
             nonSimple = []
             simple = []
             for branch in self.poly[1:]:
-                if isinstance(self.poly, (int, float, Variable.Variable)):
+                if isinstance(branch, (int, float, Variable.Variable)):
                     simple.append(branch)
                 else:
                     nonSimple.append(branch)
 
             if len(nonSimple) == 0:  # this means our * node gives a monomial!
-                return Polynomial(input=self.poly)
+                return Polynomial(input=self)
             else:
                 simplified = self.distribute(nonSimple, simple)
                 newPoly = Polynomial()
                 newPoly.poly = ["+"]
                 for branch in simplified.poly[1:]:
-                    newPoly.poly.append(branch.simplify())
+                    newPoly.poly.append(branch.simplifyRecurse())
                 return newPoly
+
+    def simplify(self):
+        simplified = self.simplifyRecurse()
+        # distributed out the polynomial. Now need to collect like terms
+        simplified.vars = self.vars.copy()
+        orderedVars = sorted(list(simplified.vars))
+
+        powers = {}  # will have keys of tuples. The tuples will represent the power of a variable. Values will be the
+        for monomial in simplified.poly[1:]:
+            power = [0] * len(orderedVars)
+            total = 1
+            for term in monomial.poly[1:]:
+                if isinstance(term, (int, float)):
+                    total *= term
+                elif isinstance(term, Variable.Variable):
+                    power[orderedVars.index(term)] += 1
+
+            power = tuple(power)
+            if power not in powers:
+                powers[power] = total
+            else:
+                powers[power] += total
+
+        finalPoly = Polynomial()
+        finalPoly.poly = ["+"]
+        finalPoly.vars = self.vars.copy()
+        for power in sorted(list(powers.keys())):
+            monomial = Polynomial()
+            monomial.poly = ["*"]
+            if powers[power] != 0:
+                monomial.poly.append(powers[power])
+
+            for pow, ind in zip(power, range(len(power))):
+                if pow == 0:
+                    continue
+                elif pow == 1:
+                    monomial.poly.append(orderedVars[ind])
+                else:
+                    monomial.poly.append(orderedVars[ind]**pow)
+            finalPoly.poly.append(monomial)
+        return finalPoly

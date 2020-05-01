@@ -31,9 +31,16 @@ for x in (p + q).vars:
 x = Variable("x")
 y = Variable("y")
 print(x + y)
+print("x+y")
 
-p = ((2 * y) + x) * ((x + y) * 10) + (y * x) ** 10
+p1 = ((2 * y) + x)
+p2 = ((x + y) * 10)
+p3 = (y * x) ** 10
+print(p1)
+print(p2)
+p = p1 * p2 + p3
 print(p)
+print("p")
 
 p = 2 + x + 4 + y
 q = 2 + x + (4 * y)
@@ -44,3 +51,8 @@ print(p + q)
 print(q)
 print(q.eval({"x": 10, "y": 0}))
 print(q.eval({"x": 10, "y": -3}))
+
+print()
+po = (2 + x) * (4 + x)
+print(po)
+print(po.simplify())
