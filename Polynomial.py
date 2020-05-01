@@ -1,4 +1,5 @@
 import Variable
+import math
 
 
 class Polynomial(object):
@@ -105,25 +106,24 @@ class Polynomial(object):
             return x[self.poly.name]
         elif isinstance(self.poly, int) or isinstance(self.poly, float):
             return self.poly
-        elif isinstance(self.poly, tuple):
-            if self.poly[1] == "+":
-                return min(self.poly[0].evalRecurse(x), self.poly[2].evalRecurse(x))
-            if self.poly[1] == "*":
-                return self.poly[0].evalRecurse(x) + self.poly[2].evalRecurse(x)
-            if self.poly[1] == "^":
-                return self.poly[0].evalRecurse(x) * self.poly[2].evalRecurse(x)
+        elif isinstance(self.poly, list):
+            resultList = [branch.evalRecurse(x) for branch in self.poly[1:]]
+            if self.poly[0] == "+":
+                return min(resultList)
+            if self.poly[0] == "*":
+                return sum(resultList)
+            if self.poly[0] == "^":
+                return math.prod(resultList)
 
     def eval(self, x):
         if self.poly is None:
             return None
 
         varNameSet = {y.name for y in self.vars}
-        print(varNameSet)
-        print(set(x.keys()))
         if not isinstance(x, dict):
             if len(self.vars) != 1:
                 raise Exception("Tried to evaluate polynomial %s with a single variable, but there is more than one variable that needs to be assigned" % str(self))
         elif varNameSet != set(x.keys()):
             raise Exception("Didn't assign all of the variables in the polynomial")
-
-        return self.evalRecurse(x)
+        result = self.evalRecurse(x)
+        return result

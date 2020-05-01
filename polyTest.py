@@ -41,4 +41,6 @@ r = (2 + x) * (4 * y)
 print(p, q, r)
 print(p + q)
 
+print(q)
 print(q.eval({"x": 10, "y": 0}))
+print(q.eval({"x": 10, "y": -3}))
