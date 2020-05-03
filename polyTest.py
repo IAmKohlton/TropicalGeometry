@@ -112,6 +112,4 @@ comparePoly(po, simplified)
 
 po = (((1 + x) * (2 + y)) + ((x + y) * (x + (-5)))) * (((y + y) * (x + x)) + ((4 + x) * (x + 10)))
 simplified = po.simplify()
-print(po)
-print(simplified)
 comparePoly(po, simplified)

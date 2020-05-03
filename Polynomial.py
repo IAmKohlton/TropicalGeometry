@@ -206,7 +206,11 @@ class Polynomial(object):
                 newPoly = Polynomial()
                 newPoly.poly = ["+"]
                 for branch in simplified.poly[1:]:
-                    newPoly.poly.append(branch.simplifyRecurse())
+                    recursive = branch.simplifyRecurse()
+                    if recursive.poly[0] == "*":
+                        newPoly.poly.append(recursive)
+                    elif recursive.poly[0] == "+":
+                        newPoly.poly.extend(recursive.poly[1:])
                 return newPoly
 
     def simplify(self):
