@@ -1,6 +1,8 @@
 import Polynomial
+from functools import total_ordering
 
 
+@total_ordering
 class Variable(object):
     def __init__(self, name):
         self.name = name
@@ -12,6 +14,9 @@ class Variable(object):
         if type(self) != type(other):
             return False
         return self.name == other.name
+
+    def __lt__(self, other):
+        return self.name < other.name
 
     def __hash__(self):
         return hash(self.name)

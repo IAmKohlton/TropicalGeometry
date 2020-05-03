@@ -41,7 +41,7 @@ def comparePoly(expected, got):
             varDict[var] = value
 
         # check if the values of the polynomials are close enough
-        if abs(expected.eval(varDict) - got.eval(varDict)) < 0.000001:
+        if abs(expected.eval(varDict) - got.eval(varDict)) > 0.000001:
             equal = False
     if not equal:
         print("The given polynomials are not equal")
@@ -105,5 +105,13 @@ compare(q2, 1)
 po = (2 + x) * (4 + x)
 simplified = po.simplify()
 comparePoly(po, simplified)
+
+po = ((x * 2) + (y * (-4))) * (x + (x * y)) * ((20 * y) + (x * x) + (y * x * y))
+simplified = po.simplify()
+comparePoly(po, simplified)
+
+po = (((1 + x) * (2 + y)) + ((x + y) * (x + (-5)))) * (((y + y) * (x + x)) + ((4 + x) * (x + 10)))
+simplified = po.simplify()
 print(po)
 print(simplified)
+comparePoly(po, simplified)

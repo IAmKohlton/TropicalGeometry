@@ -169,6 +169,7 @@ class Polynomial(object):
         # just need to distribute the simple branches
         for child in left.poly[1:]:
             child.poly.extend(simple)
+
         return left
 
     def simplifyRecurse(self):
@@ -193,6 +194,8 @@ class Polynomial(object):
             for branch in self.poly[1:]:
                 if isinstance(branch, (int, float, Variable.Variable)):
                     simple.append(branch)
+                elif isinstance(branch.poly, (int, float, Variable.Variable)):
+                    simple.append(branch.poly)
                 else:
                     nonSimple.append(branch)
 
@@ -221,6 +224,11 @@ class Polynomial(object):
                     total += term
                 elif isinstance(term, Variable.Variable):
                     power[orderedVars.index(term)] += 1
+                elif isinstance(term, Polynomial):
+                    if isinstance(term.poly, (int, float)):
+                        total += term.poly
+                    elif isinstance(term.poly, (Variable.Variable)):
+                        power[orderedVars.index(term.poly)] += 1
 
             power = tuple(power)
             if power not in powers:
