@@ -1,5 +1,5 @@
 import Variable
-import math
+from numpy import prod
 
 
 class Polynomial(object):
@@ -38,8 +38,6 @@ class Polynomial(object):
             return Polynomial(input=input)
         else:
             newPoly = Polynomial()
-            # newPoly.poly = (self, op, input)
-
             # cast the input to a Polynomial
             if isinstance(input, (int, float, Variable.Variable)):
                 input = Polynomial(input=input)
@@ -110,16 +108,22 @@ class Polynomial(object):
     def evalRecurse(self, x):
         if isinstance(self.poly, Variable.Variable):
             return x[self.poly.name]
-        elif isinstance(self.poly, int) or isinstance(self.poly, float):
+        elif isinstance(self.poly, (int, float)):
             return self.poly
         elif isinstance(self.poly, list):
-            resultList = [branch.evalRecurse(x) for branch in self.poly[1:]]
+            # resultList = [branch.evalRecurse(x) for branch in self.poly[1:]]
+            resultList = []
+            for branch in self.poly[1:]:
+                if isinstance(branch, Polynomial):
+                    resultList.append(branch.evalRecurse(x))
+                else:
+                    resultList.append(Polynomial(input=branch).evalRecurse(x))
             if self.poly[0] == "+":
                 return min(resultList)
             if self.poly[0] == "*":
                 return sum(resultList)
             if self.poly[0] == "^":
-                return math.prod(resultList)
+                return prod(resultList)
 
     def eval(self, x):
         if self.poly is None:
@@ -211,10 +215,10 @@ class Polynomial(object):
         powers = {}  # will have keys of tuples. The tuples will represent the power of a variable. Values will be the
         for monomial in simplified.poly[1:]:
             power = [0] * len(orderedVars)
-            total = 1
+            total = 0
             for term in monomial.poly[1:]:
                 if isinstance(term, (int, float)):
-                    total *= term
+                    total += term
                 elif isinstance(term, Variable.Variable):
                     power[orderedVars.index(term)] += 1
 
@@ -222,7 +226,7 @@ class Polynomial(object):
             if power not in powers:
                 powers[power] = total
             else:
-                powers[power] += total
+                powers[power] = min(total, powers[power])
 
         finalPoly = Polynomial()
         finalPoly.poly = ["+"]

@@ -34,11 +34,14 @@ def comparePoly(expected, got):
 
     equal = True
     for i in range(1000):
+        # generate random input for the polynomials
         valueList = [random() * 200 - 100 for var in variables]
         varDict = {}
         for var, value in zip(variables, valueList):
             varDict[var] = value
-        if expected.eval(varDict) != got.eval(varDict):
+
+        # check if the values of the polynomials are close enough
+        if abs(expected.eval(varDict) - got.eval(varDict)) < 0.000001:
             equal = False
     if not equal:
         print("The given polynomials are not equal")
@@ -97,9 +100,10 @@ compare("(y*4*(x+2))", str(r))
 q1 = q.eval({"x": 10, "y": 0})
 compare(q1, 2)
 q2 = q.eval({"x": 10, "y": -3})
-compare(q1, 1)
+compare(q2, 1)
 
-print()
 po = (2 + x) * (4 + x)
 simplified = po.simplify()
 comparePoly(po, simplified)
+print(po)
+print(simplified)
