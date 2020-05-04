@@ -126,6 +126,9 @@ class Polynomial(object):
                 return prod(resultList)
 
     def eval(self, x):
+        """ Evaluate the polynomial when variables are equal to x
+            where x is a dict assigning the names of variables to numbers
+        """
         if self.poly is None:
             return None
 
@@ -150,13 +153,18 @@ class Polynomial(object):
 
                     crossTerm = Polynomial()
                     crossTerm.poly = ["*"]
-                    if isinstance(rightBranch.poly, (int, float, Variable.Variable)):
+
+                    if isinstance(rightBranch, (int, float, Variable.Variable)):
+                        crossTerm.poly.append(rightBranch)
+                    elif isinstance(rightBranch.poly, (int, float, Variable.Variable)):
                         crossTerm.poly.append(rightBranch.poly)
                     else:
                         for subterm in rightBranch.poly[1:]:
                             crossTerm.poly.append(subterm)
 
-                    if isinstance(leftBranch.poly, (int, float, Variable.Variable)):
+                    if isinstance(leftBranch, (int, float, Variable.Variable)):
+                        crossTerm.poly.append(leftBranch)
+                    elif isinstance(leftBranch.poly, (int, float, Variable.Variable)):
                         crossTerm.poly.append(leftBranch.poly)
                     else:
                         for subterm in leftBranch.poly[1:]:
@@ -214,10 +222,12 @@ class Polynomial(object):
                 return newPoly
 
     def simplify(self):
+        """ Simplify the polynomial to sum of monomial form
+        """
         simplified = self.simplifyRecurse()
         # distributed out the polynomial. Now need to collect like terms
         simplified.vars = self.vars.copy()
-        orderedVars = sorted(list(simplified.vars))
+        orderedVars = sorted(list(self.vars))
 
         powers = {}  # will have keys of tuples. The tuples will represent the power of a variable. Values will be the
         for monomial in simplified.poly[1:]:
@@ -227,7 +237,12 @@ class Polynomial(object):
                 if isinstance(term, (int, float)):
                     total += term
                 elif isinstance(term, Variable.Variable):
-                    power[orderedVars.index(term)] += 1
+                    try:
+                        power[orderedVars.index(term)] += 1
+                    except Exception:
+                        print(orderedVars)
+                        print(term)
+                        exit()
                 elif isinstance(term, Polynomial):
                     if isinstance(term.poly, (int, float)):
                         total += term.poly

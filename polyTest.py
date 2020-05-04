@@ -1,6 +1,8 @@
 from Polynomial import Polynomial
 from Variable import Variable
 from random import random
+from random import randint
+from random import choice
 
 
 def compare(expected, got):
@@ -45,6 +47,42 @@ def comparePoly(expected, got):
             equal = False
     if not equal:
         print("The given polynomials are not equal")
+
+
+def randPoly(variables, depth, symbol):
+    if depth == 1:
+        poly = Polynomial()
+        if symbol == "*":
+            poly.poly = ["*"]
+        else:
+            poly.poly = ["+"]
+
+        varsUsed = set()
+        for i in range(2):
+            if random() < 0.5:
+                poly.poly.append(100 * random() - 50)
+            else:
+                var = choice(variables)
+                varsUsed.add(var)
+                poly.poly.append(var)
+
+        poly.vars = varsUsed
+        return poly
+    else:
+        poly = Polynomial()
+        poly.poly = [symbol]
+        varsUsed = set()
+        for i in range(randint(2, 5)):
+            if symbol == "*":
+                newPoly = randPoly(variables, depth - 1, "+")
+            elif symbol == "+":
+                newPoly = randPoly(variables, depth - 1, "*")
+
+            poly.poly.append(newPoly)
+            varsUsed = varsUsed | newPoly.vars
+
+        poly.vars = varsUsed
+        return poly
 
 
 # make sure that the basic polynomial contructor is working
@@ -113,3 +151,15 @@ comparePoly(po, simplified)
 po = (((1 + x) * (2 + y)) + ((x + y) * (x + (-5)))) * (((y + y) * (x + x)) + ((4 + x) * (x + 10)))
 simplified = po.simplify()
 comparePoly(po, simplified)
+
+x = Variable("x")
+y = Variable("y")
+for i in range(10):
+    po = randPoly([x, y], 2, "*")
+    simplified = po.simplify()
+    comparePoly(po, simplified)
+
+for i in range(10):
+    po = randPoly([x, y], 3, "*")  # never change this number to be larger than 3
+    simplified = po.simplify()
+    comparePoly(po, simplified)
