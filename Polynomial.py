@@ -29,7 +29,9 @@ class Polynomial(object):
         else:
             self.vars = set()
 
-    def merge(self, inputPoly, op):
+    def __merge(self, inputPoly, op):
+        """ Merge two polynomials into one
+        """
         newPoly = Polynomial()
 
         # cast the input to a Polynomial
@@ -45,7 +47,6 @@ class Polynomial(object):
         if isinstance(self.poly, (int, float, Variable.Variable)):
             self.poly = [op, self.poly]
 
-        # next four cases deal with when both are polynomials already
         if op == self.poly[0] and op == input.poly[0]:
             newPoly.poly = self.poly + input.poly[1:]
         elif op == self.poly[0]:
@@ -59,7 +60,7 @@ class Polynomial(object):
 
         return newPoly
 
-    def operate(self, input, op):
+    def __operate(self, input, op):
         """ A generalized version of addition, multiplication, and exponentiation
         """
         assert isinstance(input, (int, float, Variable.Variable, Polynomial))
@@ -67,7 +68,7 @@ class Polynomial(object):
         if self.poly is None:
             return Polynomial(input=input)
         else:
-            newPoly = self.merge(input, op)
+            newPoly = self.__merge(input, op)
 
             if isinstance(input, Polynomial):
                 newPoly.vars = input.vars | self.vars
@@ -78,20 +79,20 @@ class Polynomial(object):
             return newPoly
 
     def __add__(self, input):
-        return self.operate(input, "+")
+        return self.__operate(input, "+")
 
     def __radd__(self, input):
-        return self.operate(input, "+")
+        return self.__operate(input, "+")
 
     def __mul__(self, input):
-        return self.operate(input, "*")
+        return self.__operate(input, "*")
 
     def __rmul__(self, input):
-        return self.operate(input, "*")
+        return self.__operate(input, "*")
 
     def __pow__(self, input):
         assert isinstance(input, int)
-        return self.operate(input, "^")
+        return self.__operate(input, "^")
 
     def __str__(self):
         if self.poly is None:
@@ -106,19 +107,19 @@ class Polynomial(object):
             outString = outString[:-1] + ")"
             return outString
 
-    def evalRecurse(self, x):
+    def __evalRecurse(self, x):
         if isinstance(self.poly, Variable.Variable):
             return x[self.poly.name]
         elif isinstance(self.poly, (int, float)):
             return self.poly
         elif isinstance(self.poly, list):
-            # resultList = [branch.evalRecurse(x) for branch in self.poly[1:]]
+            # resultList = [branch.__evalRecurse(x) for branch in self.poly[1:]]
             resultList = []
             for branch in self.poly[1:]:
                 if isinstance(branch, Polynomial):
-                    resultList.append(branch.evalRecurse(x))
+                    resultList.append(branch.__evalRecurse(x))
                 else:
-                    resultList.append(Polynomial(input=branch).evalRecurse(x))
+                    resultList.append(Polynomial(input=branch).__evalRecurse(x))
             if self.poly[0] == "+":
                 return min(resultList)
             if self.poly[0] == "*":
@@ -139,27 +140,17 @@ class Polynomial(object):
                 raise Exception("Tried to evaluate polynomial %s with a single variable, but there is more than one variable that needs to be assigned" % str(self))
         elif varNameSet != set(x.keys()):
             raise Exception("Didn't assign all of the variables in the polynomial")
-        result = self.evalRecurse(x)
-        return result
 
-    def calculateCrossTermPolynomial(self, rightBranch, leftBranch):
-        crossTerm = Polynomial()
-        crossTerm.poly = ["*"]
+        return self.__evalRecurse(x)
 
-        if isinstance(rightBranch, (int, float, Variable.Variable)):
-            crossTerm.poly.append(rightBranch)
-        elif isinstance(rightBranch.poly, (int, float, Variable.Variable)):
-            crossTerm.poly.append(rightBranch.poly)
+    def __calculateCrossTermPolynomial(self, branch, crossTerm):
+
+        if isinstance(branch, (int, float, Variable.Variable)):
+            crossTerm.poly.append(branch)
+        elif isinstance(branch.poly, (int, float, Variable.Variable)):
+            crossTerm.poly.append(branch.poly)
         else:
-            for subterm in rightBranch.poly[1:]:
-                crossTerm.poly.append(subterm)
-
-        if isinstance(leftBranch, (int, float, Variable.Variable)):
-            crossTerm.poly.append(leftBranch)
-        elif isinstance(leftBranch.poly, (int, float, Variable.Variable)):
-            crossTerm.poly.append(leftBranch.poly)
-        else:
-            for subterm in leftBranch.poly[1:]:
+            for subterm in branch.poly[1:]:
                 crossTerm.poly.append(subterm)
         return crossTerm
 
@@ -170,7 +161,10 @@ class Polynomial(object):
             tempLeft.poly = ["+"]
             for leftBranch in left.poly[1:]:
                 for rightBranch in right.poly[1:]:
-                    crossTerm = self.calculateCrossTermPolynomial(rightBranch, leftBranch)
+                    crossTerm = Polynomial()
+                    crossTerm.poly = ["*"]
+                    crossTerm = self.__calculateCrossTermPolynomial(rightBranch, crossTerm)
+                    crossTerm = self.__calculateCrossTermPolynomial(leftBranch, crossTerm)
                     tempLeft.poly.append(crossTerm)
             left = tempLeft
 
