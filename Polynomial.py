@@ -148,9 +148,8 @@ class Polynomial(object):
         return self.__evalRecurse(x)
 
     def __calculateCrossTermPolynomial(self, branch, crossTerm):
-        if isinstance(branch, (int, float, Variable.Variable)):
-            crossTerm.poly.append(branch)
-        elif isinstance(branch.poly, (int, float, Variable.Variable)):
+        branch = ensurePoly(branch)
+        if isinstance(branch.poly, (int, float, Variable.Variable)):
             crossTerm.poly.append(branch.poly)
         else:
             for subterm in branch.poly[1:]:
@@ -183,9 +182,8 @@ class Polynomial(object):
         nonSimple = []
         simple = []
         for branch in self.poly[1:]:
-            if isinstance(branch, (int, float, Variable.Variable)):
-                simple.append(branch)
-            elif isinstance(branch.poly, (int, float, Variable.Variable)):
+            branch = ensurePoly(branch)
+            if isinstance(branch.poly, (int, float, Variable.Variable)):
                 simple.append(branch.poly)
             else:
                 nonSimple.append(branch)
@@ -228,7 +226,7 @@ class Polynomial(object):
             newPoly = Polynomial()
             newPoly.poly = ["+"]
             for branch in self.poly[1:]:
-                newPoly.poly.append(branch.__simplifyRecurse())
+                newPoly.poly.append(ensurePoly(branch).__simplifyRecurse())
             return newPoly
         elif self.poly[0] == "*":
             # self.__handlePowTimes()
@@ -243,7 +241,7 @@ class Polynomial(object):
                 newPoly = Polynomial()
                 newPoly.poly = ["+"]
                 for branch in simplified.poly[1:]:
-                    recursive = branch.__simplifyRecurse()
+                    recursive = ensurePoly(branch).__simplifyRecurse()
                     if recursive.poly[0] == "*":
                         newPoly.poly.append(recursive)
                     elif recursive.poly[0] == "+":
@@ -263,20 +261,11 @@ class Polynomial(object):
             power = [0] * len(orderedVars)
             total = 0
             for term in monomial.poly[1:]:
-                if isinstance(term, (int, float)):
-                    total += term
-                elif isinstance(term, Variable.Variable):
-                    try:
-                        power[orderedVars.index(term)] += 1
-                    except Exception:
-                        print(orderedVars)
-                        print(term)
-                        exit()
-                elif isinstance(term, Polynomial):
-                    if isinstance(term.poly, (int, float)):
-                        total += term.poly
-                    elif isinstance(term.poly, (Variable.Variable)):
-                        power[orderedVars.index(term.poly)] += 1
+                term = ensurePoly(term)
+                if isinstance(term.poly, (int, float)):
+                    total += term.poly
+                elif isinstance(term.poly, (Variable.Variable)):
+                    power[orderedVars.index(term.poly)] += 1
 
             power = tuple(power)
             if power not in powers:
