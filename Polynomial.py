@@ -2,6 +2,15 @@ import Variable
 from numpy import prod
 
 
+def ensurePoly(ob):
+    if isinstance(ob, (int, float, Variable.Variable)):
+        return Polynomial(ob)
+    elif isinstance(ob, Polynomial):
+        return ob
+    else:
+        raise Exception("Tried to convert a non-int, float, variable to a poly")
+
+
 class Polynomial(object):
     """ A tropical polynomial. This is a polynomial where addition is done with min(), and multiplication is done with +.
     """
@@ -35,10 +44,8 @@ class Polynomial(object):
         newPoly = Polynomial()
 
         # cast the input to a Polynomial
-        if isinstance(inputPoly, (int, float, Variable.Variable)):
-            input = Polynomial()
-            input.poly = [op, inputPoly]
-        elif isinstance(inputPoly.poly, (int, float, Variable.Variable)):
+        inputPoly = ensurePoly(inputPoly)
+        if isinstance(inputPoly.poly, (int, float, Variable.Variable)):
             input = Polynomial()
             input.poly = [op, inputPoly.poly]
         else:
@@ -116,10 +123,7 @@ class Polynomial(object):
             # resultList = [branch.__evalRecurse(x) for branch in self.poly[1:]]
             resultList = []
             for branch in self.poly[1:]:
-                if isinstance(branch, Polynomial):
-                    resultList.append(branch.__evalRecurse(x))
-                else:
-                    resultList.append(Polynomial(input=branch).__evalRecurse(x))
+                resultList.append(ensurePoly(branch).__evalRecurse(x))
             if self.poly[0] == "+":
                 return min(resultList)
             if self.poly[0] == "*":
@@ -144,7 +148,6 @@ class Polynomial(object):
         return self.__evalRecurse(x)
 
     def __calculateCrossTermPolynomial(self, branch, crossTerm):
-
         if isinstance(branch, (int, float, Variable.Variable)):
             crossTerm.poly.append(branch)
         elif isinstance(branch.poly, (int, float, Variable.Variable)):
@@ -154,28 +157,64 @@ class Polynomial(object):
                 crossTerm.poly.append(subterm)
         return crossTerm
 
-    def distribute(self, nonSimple, simple):
-        left = nonSimple[0]
+    def __distribute(self, nonSimple, simple):
+        leftmostBranch = nonSimple[0]
         for right in nonSimple[1:]:
             tempLeft = Polynomial()
             tempLeft.poly = ["+"]
-            for leftBranch in left.poly[1:]:
+            for leftBranch in leftmostBranch.poly[1:]:
                 for rightBranch in right.poly[1:]:
                     crossTerm = Polynomial()
                     crossTerm.poly = ["*"]
                     crossTerm = self.__calculateCrossTermPolynomial(rightBranch, crossTerm)
                     crossTerm = self.__calculateCrossTermPolynomial(leftBranch, crossTerm)
                     tempLeft.poly.append(crossTerm)
-            left = tempLeft
+
+            leftmostBranch = tempLeft
 
         # now all the non simple branches are distributed
         # just need to distribute the simple branches
-        for child in left.poly[1:]:
+        for child in leftmostBranch.poly[1:]:
             child.poly.extend(simple)
 
-        return left
+        return leftmostBranch
 
-    def simplifyRecurse(self):
+    def __partitionSimpleAndNonSimpleBranches(self):
+        nonSimple = []
+        simple = []
+        for branch in self.poly[1:]:
+            if isinstance(branch, (int, float, Variable.Variable)):
+                simple.append(branch)
+            elif isinstance(branch.poly, (int, float, Variable.Variable)):
+                simple.append(branch.poly)
+            else:
+                nonSimple.append(branch)
+
+        return nonSimple, simple
+
+    def __handlePowPlus(self):
+        newPolyList = ["+"]
+        for branch in self.poly[1:]:
+            if isinstance(branch, Polynomial) and isinstance(branch.poly, list) and branch.poly[0] == "^":
+                productOfPowers = prod(branch.poly[2:])
+                for _ in range(productOfPowers):
+                    newPolyList.append(branch.poly[1])
+            else:
+                newPolyList.append(branch)
+        self.poly = newPolyList
+
+    def __handlePowTimes(self):
+        newPolyList = ["*"]
+        for branch in self.poly[1:]:
+            if isinstance(branch, Polynomial) and isinstance(branch.poly, list) and branch.poly[0] == "^":
+                powMovedDown = Polynomial()
+                powMovedDown.poly = ["+", float("inf"), branch]
+                newPolyList.append(powMovedDown)
+            else:
+                newPolyList.append(branch)
+        self.poly = newPolyList
+
+    def __simplifyRecurse(self):  # TODO make this work with ^
         """ This function relies on the fact that for a given node of a polynomial,
             all of it's children will be the same operation.
             The exponential functions breaks this so we'll deal with it later
@@ -184,32 +223,27 @@ class Polynomial(object):
         if isinstance(self.poly, (int, float, Variable.Variable)):
             return self
         elif self.poly[0] == "+":
+            # self.__handlePowPlus()
+
             newPoly = Polynomial()
             newPoly.poly = ["+"]
             for branch in self.poly[1:]:
-                newPoly.poly.append(branch.simplifyRecurse())
+                newPoly.poly.append(branch.__simplifyRecurse())
             return newPoly
-        else:  # we are on a * node
-            # this is the complicated step
-            # start by partitioning branches into simple, and non simple
-            nonSimple = []
-            simple = []
-            for branch in self.poly[1:]:
-                if isinstance(branch, (int, float, Variable.Variable)):
-                    simple.append(branch)
-                elif isinstance(branch.poly, (int, float, Variable.Variable)):
-                    simple.append(branch.poly)
-                else:
-                    nonSimple.append(branch)
+        elif self.poly[0] == "*":
+            # self.__handlePowTimes()
+
+            nonSimple, simple = self.__partitionSimpleAndNonSimpleBranches()
 
             if len(nonSimple) == 0:  # this means our * node gives a monomial!
                 return Polynomial(input=self)
             else:
-                simplified = self.distribute(nonSimple, simple)
+                # do the full distribution
+                simplified = self.__distribute(nonSimple, simple)
                 newPoly = Polynomial()
                 newPoly.poly = ["+"]
                 for branch in simplified.poly[1:]:
-                    recursive = branch.simplifyRecurse()
+                    recursive = branch.__simplifyRecurse()
                     if recursive.poly[0] == "*":
                         newPoly.poly.append(recursive)
                     elif recursive.poly[0] == "+":
@@ -219,7 +253,7 @@ class Polynomial(object):
     def simplify(self):
         """ Simplify the polynomial to sum of monomial form
         """
-        simplified = self.simplifyRecurse()
+        simplified = self.__simplifyRecurse()
         # distributed out the polynomial. Now need to collect like terms
         simplified.vars = self.vars.copy()
         orderedVars = sorted(list(self.vars))

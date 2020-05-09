@@ -85,32 +85,36 @@ def randPoly(variables, depth, symbol):
         return poly
 
 
-# make sure that the basic polynomial contructor is working
 p = Polynomial(22)
 p = p + 2
 expectedString = "(22+2)"
 compare(expectedString, str(p))
 
+
 p = p * p
 expectedString = "((22+2)*(22+2))"
 compare(expectedString, str(p))
 
-x = Variable("x")
 
+x = Variable("x")
 p = x + p * x
 expectedString = "(x+((22+2)*(22+2)*x))"
 compare(expectedString, str(p))
+
 
 y = Variable("y")
 q = Polynomial(3)
 q = y + q
 expectedString = "(y+q)"
 
+
 expectedSet = {"x"}
 compareSet(expectedSet, p.vars)
 
+
 expectedSet = {"y"}
 compareSet(expectedSet, q.vars)
+
 
 expectedSet = {"x", "y"}
 compareSet(expectedSet, (p + q).vars)
@@ -119,6 +123,7 @@ compareSet(expectedSet, (p + q).vars)
 x = Variable("x")
 y = Variable("y")
 compare("(x+y)", str(x + y))
+
 
 p1 = ((2 * y) + x)
 p2 = ((x + y) * 10)
@@ -135,22 +140,32 @@ compare("(x+2+4+y)", str(p))
 compare("(x+2+(y*4))", str(q))
 compare("((x+2)*y*4)", str(r))
 
+
 q1 = q.eval({"x": 10, "y": 0})
 compare(q1, 2)
 q2 = q.eval({"x": 10, "y": -3})
 compare(q2, 1)
 
+
 po = (2 + x) * (4 + x)
 simplified = po.simplify()
 comparePoly(po, simplified)
+
 
 po = ((x * 2) + (y * (-4))) * (x + (x * y)) * ((20 * y) + (x * x) + (y * x * y))
 simplified = po.simplify()
 comparePoly(po, simplified)
 
+
 po = (((1 + x) * (2 + y)) + ((x + y) * (x + (-5)))) * (((y + y) * (x + x)) + ((4 + x) * (x + 10)))
 simplified = po.simplify()
 comparePoly(po, simplified)
+
+
+# po = 1 + (1 + x) ** 2
+# expectedPoly = 2 + 1 * x + x ** 2
+# comparePoly(po.simplify(), simplified)
+
 
 x = Variable("x")
 y = Variable("y")
