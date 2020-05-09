@@ -124,7 +124,7 @@ p1 = ((2 * y) + x)
 p2 = ((x + y) * 10)
 p3 = (y * x) ** 10
 p = p1 * p2 + p3
-expectedString = "(((x+y)*10*((y*2)+x))+((y*x)^10))"
+expectedString = "((((y*2)+x)*(x+y)*10)+((y*x)^10))"
 compare(expectedString, str(p))
 
 
@@ -133,7 +133,7 @@ q = 2 + x + (4 * y)
 r = (2 + x) * (4 * y)
 compare("(x+2+4+y)", str(p))
 compare("(x+2+(y*4))", str(q))
-compare("(y*4*(x+2))", str(r))
+compare("((x+2)*y*4)", str(r))
 
 q1 = q.eval({"x": 10, "y": 0})
 compare(q1, 2)

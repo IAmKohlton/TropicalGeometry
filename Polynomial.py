@@ -29,6 +29,36 @@ class Polynomial(object):
         else:
             self.vars = set()
 
+    def merge(self, inputPoly, op):
+        newPoly = Polynomial()
+
+        # cast the input to a Polynomial
+        if isinstance(inputPoly, (int, float, Variable.Variable)):
+            input = Polynomial()
+            input.poly = [op, inputPoly]
+        elif isinstance(inputPoly.poly, (int, float, Variable.Variable)):
+            input = Polynomial()
+            input.poly = [op, inputPoly.poly]
+        else:
+            input = inputPoly
+
+        if isinstance(self.poly, (int, float, Variable.Variable)):
+            self.poly = [op, self.poly]
+
+        # next four cases deal with when both are polynomials already
+        if op == self.poly[0] and op == input.poly[0]:
+            newPoly.poly = self.poly + input.poly[1:]
+        elif op == self.poly[0]:
+            newPoly.poly = self.poly
+            newPoly.poly.append(input)
+        elif op == input.poly[0]:
+            newPoly.poly = [input.poly[0], self]
+            newPoly.poly.extend(input.poly[1:])
+        else:
+            newPoly.poly = [op, self, input]
+
+        return newPoly
+
     def operate(self, input, op):
         """ A generalized version of addition, multiplication, and exponentiation
         """
@@ -37,36 +67,7 @@ class Polynomial(object):
         if self.poly is None:
             return Polynomial(input=input)
         else:
-            newPoly = Polynomial()
-            # cast the input to a Polynomial
-            if isinstance(input, (int, float, Variable.Variable)):
-                input = Polynomial(input=input)
-
-            # these first three cases deal with when one of them is a basic type
-            if not isinstance(self.poly, list) and not isinstance(input.poly, list):
-                newPoly.poly = [op, self, input]
-            elif not isinstance(self.poly, list):
-                if op == input.poly[0]:
-                    newPoly.poly = input.poly + [self]
-                else:
-                    newPoly.poly = [op, self, input]
-            elif not isinstance(input.poly, list):
-                if op == self.poly[0]:
-                    newPoly.poly = self.poly + [input]
-                else:
-                    newPoly.poly = [op, self, input]
-
-            # next four cases deal with when both are polynomials already
-            elif op == self.poly[0] and op == input.poly[0]:
-                newPoly.poly = self.poly + input.poly[1:]
-            elif op == self.poly[0]:
-                newPoly.poly = self.poly
-                newPoly.poly.append(input)
-            elif op == input.poly[0]:
-                newPoly.poly = input.poly
-                newPoly.poly.append(self)
-            else:
-                newPoly.poly = [op, self, input]
+            newPoly = self.merge(input, op)
 
             if isinstance(input, Polynomial):
                 newPoly.vars = input.vars | self.vars
@@ -141,6 +142,27 @@ class Polynomial(object):
         result = self.evalRecurse(x)
         return result
 
+    def calculateCrossTermPolynomial(self, rightBranch, leftBranch):
+        crossTerm = Polynomial()
+        crossTerm.poly = ["*"]
+
+        if isinstance(rightBranch, (int, float, Variable.Variable)):
+            crossTerm.poly.append(rightBranch)
+        elif isinstance(rightBranch.poly, (int, float, Variable.Variable)):
+            crossTerm.poly.append(rightBranch.poly)
+        else:
+            for subterm in rightBranch.poly[1:]:
+                crossTerm.poly.append(subterm)
+
+        if isinstance(leftBranch, (int, float, Variable.Variable)):
+            crossTerm.poly.append(leftBranch)
+        elif isinstance(leftBranch.poly, (int, float, Variable.Variable)):
+            crossTerm.poly.append(leftBranch.poly)
+        else:
+            for subterm in leftBranch.poly[1:]:
+                crossTerm.poly.append(subterm)
+        return crossTerm
+
     def distribute(self, nonSimple, simple):
         left = nonSimple[0]
         for right in nonSimple[1:]:
@@ -148,28 +170,7 @@ class Polynomial(object):
             tempLeft.poly = ["+"]
             for leftBranch in left.poly[1:]:
                 for rightBranch in right.poly[1:]:
-                    # need to multiply leftBranch, and rightBranch together.
-                    # this will be the product of their sub-branches
-
-                    crossTerm = Polynomial()
-                    crossTerm.poly = ["*"]
-
-                    if isinstance(rightBranch, (int, float, Variable.Variable)):
-                        crossTerm.poly.append(rightBranch)
-                    elif isinstance(rightBranch.poly, (int, float, Variable.Variable)):
-                        crossTerm.poly.append(rightBranch.poly)
-                    else:
-                        for subterm in rightBranch.poly[1:]:
-                            crossTerm.poly.append(subterm)
-
-                    if isinstance(leftBranch, (int, float, Variable.Variable)):
-                        crossTerm.poly.append(leftBranch)
-                    elif isinstance(leftBranch.poly, (int, float, Variable.Variable)):
-                        crossTerm.poly.append(leftBranch.poly)
-                    else:
-                        for subterm in leftBranch.poly[1:]:
-                            crossTerm.poly.append(subterm)
-
+                    crossTerm = self.calculateCrossTermPolynomial(rightBranch, leftBranch)
                     tempLeft.poly.append(crossTerm)
             left = tempLeft
 
