@@ -15,7 +15,7 @@ def compare(expected, got):
     """ Compare two strings
     """
     if expected != got:
-        print("Test case failed on line %i.\nExpected: %s\nBut got: %s" % (seeWhereErrorHappened(), expected, got))
+        print("Test case failed on line %i.\nExpected: %s\nBut got: %s" % (seeWhereErrorHappened(), str(expected), str(got)))
 
 
 def compareSet(expected, got):
@@ -37,7 +37,7 @@ def comparePoly(expected, got):
         Only checks if function values are equal in range of +100 to -100 of each variable
     """
     if expected.vars != got.vars:
-        print("Variable set for expected is: %s\n but the got variable set is: %s")
+        print("Variable set for expected is: %s\n but the got variable set is: %s" % (expected.vars, got.vars))
     variables = [str(x) for x in expected.vars]
 
     equal = True
@@ -173,9 +173,40 @@ simplified = po.simplify()
 comparePoly(po, simplified)
 
 
+po = (1 + x) * (1 + x) + (-5)
+expectedPoly = 1 * x + x ** 2 + (-5)
+simplified = po.simplify()
+compareSet(expectedPoly.vars, simplified.vars)
+comparePoly(expectedPoly, simplified)
+
+
 po = (1 + x) ** 2
 expectedPoly = 2 + 1 * x + x ** 2
-comparePoly(po.simplify(), simplified)
+simplified = po.simplify()
+compareSet(expectedPoly.vars, simplified.vars)
+comparePoly(expectedPoly, simplified)
+
+
+po = (1 + x) ** 2 + (-5)
+expectedPoly = 1 * x + x ** 2 + (-5)
+simplified = po.simplify()
+compareSet(expectedPoly.vars, simplified.vars)
+comparePoly(expectedPoly, simplified)
+
+
+po = (x + 1) * 5
+expectedPoly = 5 * x + 6
+simplified = po.simplify()
+compareSet(expectedPoly.vars, simplified.vars)
+comparePoly(expectedPoly, simplified)
+
+
+po = (1 + x) ** 2 * 5
+expectedPoly = 10 + 5 * x + 5 * x ** 2
+simplified = po.simplify()
+compareSet(expectedPoly.vars, simplified.vars)
+comparePoly(expectedPoly, simplified)
+print(simplified, expectedPoly)
 
 
 x = Variable("x")

@@ -40,6 +40,9 @@ class Polynomial(object):
         else:
             self.vars = set()
 
+    def isSimple(self):
+        return isinstance(self.poly, (int, float, Variable.Variable))
+
     def __merge(self, inputPoly, op):
         """ Merge two polynomials into one
         """
@@ -175,10 +178,20 @@ class Polynomial(object):
 
         # now all the non simple branches are distributed
         # just need to distribute the simple branches
+        distributedPoly = Polynomial()
+        distributedPoly.poly = ["+"]
         for child in leftmostBranch.poly[1:]:
-            child.poly.extend(simple)
+            distChild = Polynomial()
+            distChild.poly = ["*"]
+            if ensurePoly(child).isSimple():
+                childPoly = Polynomial()
+                childPoly.poly = ["*", child]
+                child = childPoly
+            distChild.poly.extend(child.poly[1:])
+            distChild.poly.extend(simple)
+            distributedPoly.poly.append(distChild)
 
-        return leftmostBranch
+        return distributedPoly
 
     def __partitionSimpleAndNonSimpleBranches(self):
         nonSimple = []
@@ -196,9 +209,13 @@ class Polynomial(object):
         newPolyList = ["+"]
         for branch in self.poly[1:]:
             if isinstance(branch, Polynomial) and isinstance(branch.poly, list) and branch.poly[0] == "^":
+                powerPoly = Polynomial()
+                powerPoly.poly = ["*"]
                 productOfPowers = prod(branch.poly[2:])
                 for _ in range(productOfPowers):
-                    newPolyList.append(branch.poly[1])
+                    powerPoly.poly.append(branch.poly[1])
+
+                newPolyList.append(powerPoly)
             else:
                 newPolyList.append(branch)
         self.poly = newPolyList
@@ -223,15 +240,20 @@ class Polynomial(object):
         if isinstance(self.poly, (int, float, Variable.Variable)):
             return self
         elif self.poly[0] == "+":
-            # self.__handlePowPlus()
+            self.__handlePowPlus()
 
             newPoly = Polynomial()
             newPoly.poly = ["+"]
             for branch in self.poly[1:]:
-                newPoly.poly.append(ensurePoly(branch).__simplifyRecurse())
+                simplifiedBranch = ensurePoly(branch).__simplifyRecurse()
+                if not simplifiedBranch.isSimple():
+                    for additiveTerm in simplifiedBranch.poly[1:]:
+                        newPoly.poly.append(additiveTerm)
+                else:
+                    newPoly.poly.append(simplifiedBranch)
             return newPoly
         elif self.poly[0] == "*":
-            # self.__handlePowTimes()
+            self.__handlePowTimes()
 
             nonSimple, simple = self.__partitionSimpleAndNonSimpleBranches()
 
@@ -249,6 +271,15 @@ class Polynomial(object):
                     elif recursive.poly[0] == "+":
                         newPoly.poly.extend(recursive.poly[1:])
                 return newPoly
+        elif self.poly[0] == "^":
+            # this case will only be hit when we have a ^ node as the root
+            newPoly = Polynomial()
+            newPoly.poly = ["*"]
+            for _ in range(self.poly[2]):
+                newPoly.poly.append(self.poly[1])
+
+            simp = newPoly.__simplifyRecurse()
+            return simp
 
     def simplify(self):  # TODO too complex, refactor
         """ Simplify the polynomial to sum of monomial form
@@ -262,6 +293,10 @@ class Polynomial(object):
         for monomial in simplified.poly[1:]:
             power = [0] * len(orderedVars)
             total = 0
+
+            if monomial.isSimple():
+                monomial.poly = ["*", monomial.poly]
+
             for term in monomial.poly[1:]:
                 term = ensurePoly(term)
                 if isinstance(term.poly, (int, float)):
