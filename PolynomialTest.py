@@ -3,13 +3,19 @@ from Variable import Variable
 from random import random
 from random import randint
 from random import choice
+from inspect import stack
+
+
+def seeWhereErrorHappened():
+    stackinfo = stack()
+    return stackinfo[-1].lineno
 
 
 def compare(expected, got):
     """ Compare two strings
     """
     if expected != got:
-        print("Test case failed.\nExpected: %s\nBut got: %s" % (expected, got))
+        print("Test case failed on line %i.\nExpected: %s\nBut got: %s" % (seeWhereErrorHappened(), expected, got))
 
 
 def compareSet(expected, got):
@@ -46,7 +52,7 @@ def comparePoly(expected, got):
         if abs(expected.eval(varDict) - got.eval(varDict)) > 0.000001:
             equal = False
     if not equal:
-        print("The given polynomials are not equal")
+        print("The polynomials on line %i are not equal" % seeWhereErrorHappened())
 
 
 def randPoly(variables, depth, symbol):
@@ -119,6 +125,11 @@ compareSet(expectedSet, q.vars)
 expectedSet = {"x", "y"}
 compareSet(expectedSet, (p + q).vars)
 
+singleVarPoly = x + 1
+singleVarPoly = Polynomial(input=singleVarPoly)
+expectedSet = {"x"}
+compareSet(expectedSet, singleVarPoly.vars)
+
 
 x = Variable("x")
 y = Variable("y")
@@ -162,9 +173,9 @@ simplified = po.simplify()
 comparePoly(po, simplified)
 
 
-# po = 1 + (1 + x) ** 2
-# expectedPoly = 2 + 1 * x + x ** 2
-# comparePoly(po.simplify(), simplified)
+po = (1 + x) ** 2
+expectedPoly = 2 + 1 * x + x ** 2
+comparePoly(po.simplify(), simplified)
 
 
 x = Variable("x")
@@ -174,7 +185,7 @@ for i in range(10):
     simplified = po.simplify()
     comparePoly(po, simplified)
 
-for i in range(10):
+for i in range(5):
     po = randPoly([x, y], 3, "*")  # never change this number to be larger than 3
     simplified = po.simplify()
     comparePoly(po, simplified)

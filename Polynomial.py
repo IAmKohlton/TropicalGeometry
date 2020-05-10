@@ -35,6 +35,8 @@ class Polynomial(object):
             raise Exception("Did something bad")
         elif isinstance(self.poly, Variable.Variable):
             self.vars = {self.poly}
+        elif isinstance(self.poly, list):
+            self.vars = input.vars.copy()
         else:
             self.vars = set()
 
@@ -248,7 +250,7 @@ class Polynomial(object):
                         newPoly.poly.extend(recursive.poly[1:])
                 return newPoly
 
-    def simplify(self):
+    def simplify(self):  # TODO too complex, refactor
         """ Simplify the polynomial to sum of monomial form
         """
         simplified = self.__simplifyRecurse()
