@@ -289,6 +289,16 @@ class Polynomial(object):
                 childPoly = Polynomial()
                 childPoly.poly = ["*", child]
                 child = childPoly
+
+            if child.poly[0] == "^":
+                newChild = Polynomial()
+                childPoly = ["*"]
+                productOfPowers = prod(child.poly[2:])
+                for _ in range(productOfPowers):
+                    childPoly.append(child.poly[1])
+                newChild.poly = childPoly
+                child = newChild
+
             distChild.poly.extend(child.poly[1:])
             distChild.poly.extend(simple)
             distributedPoly.poly.append(distChild)

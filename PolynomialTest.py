@@ -202,12 +202,10 @@ comparePoly(expectedPoly, simplified)
 
 
 po = (1 + x) ** 2 * 5
-expectedPoly = 10 + 5 * x + 5 * x ** 2
+expectedPoly = 7 + 6 * x + 5 * x ** 2
 simplified = po.simplify()
 compareSet(expectedPoly.vars, simplified.vars)
 comparePoly(expectedPoly, simplified)
-print(simplified, expectedPoly)
-
 
 x = Variable("x")
 y = Variable("y")
