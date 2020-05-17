@@ -2,24 +2,7 @@ import unittest
 from Variable import Variable
 from TropicalCurve import TropicalCurve
 from Polynomial import Polynomial
-
-
-def assertThrows(function, expectedException):
-    error = None
-    try:
-        function()
-    except Exception as e:
-        error = e
-    assert isinstance(error, expectedException)
-
-
-def assertDoesntThrow(function):
-    error = None
-    try:
-        function()
-    except Exception as e:
-        error = e
-    assert error is None
+from testUtilities import assertThrows, assertDoesntThrow
 
 
 class ConstructorTest(unittest.TestCase):
